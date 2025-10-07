@@ -117,5 +117,54 @@ namespace EcommerceApi.Services
 
             _logger.LogInformation("Statut de la commande {OrderId} mis à jour avec succès vers {Status}", orderId, status);
         }
+
+
+        // Annule ...une commande (Client ou Admin)
+        public async Task CancelOrderAsync(int orderId, int userId, bool isAdmin = false)
+        {
+            _logger.LogInformation("Tentative d'annulation de la commande {OrderId} par l'utilisateur {UserId}", orderId, userId);
+
+            var order = await _context.Orders
+                .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Product)
+                .FirstOrDefaultAsync(o => o.Id == orderId);
+
+            if (order == null)
+            {
+                _logger.LogWarning("Commande {OrderId} introuvable pour annulation", orderId);
+                throw new Exception("Commande introuvable");
+            }
+
+            if (!isAdmin && order.UserId != userId)          // Si pas un admin, vérifie que la commande lui appartient
+            {
+                _logger.LogWarning("Utilisateur {UserId} non autorisé à annuler la commande {OrderId}", userId, orderId);
+                throw new Exception("Accès refusé");
+            }
+
+            if (order.Status == OrderStatus.Delivered || order.Status == OrderStatus.Cancelled)       // Si déjà livrée ou annulée
+            {
+                _logger.LogWarning("Commande {OrderId} déjà livrée ou annulée, annulation impossible", orderId);
+                throw new Exception("Impossible d'annuler une commande déjà livrée ou annulée");
+            }
+
+            order.Status = OrderStatus.Cancelled;            // Annule la commande
+
+            foreach (var item in order.OrderItems)           // Remet le stock
+            {
+                if (item.Product != null)
+                {
+                    item.Product.Stock += item.Quantity;
+                    _logger.LogInformation("Stock du produit {ProductId} restauré de {Quantity} unités", item.ProductId, item.Quantity);
+                }
+                else
+                {
+                    _logger.LogWarning("Le produit lié à l'OrderItem {OrderItemId} est null", item.Id);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Commande {OrderId} annulée avec succès", orderId);
+        }
     }
 }

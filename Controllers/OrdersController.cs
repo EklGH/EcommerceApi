@@ -120,5 +120,34 @@ namespace EcommerceApi.Controllers
 
             return NoContent();
         }
+
+        // Annule une commande (Client ou Admin)
+        [HttpPut("{id}/cancel")]
+        [Authorize(Roles = "Client,Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> CancelOrder(int id)
+        {
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim == null || !int.TryParse(claim.Value, out var userId))
+            {
+                _logger.LogWarning("Impossible de récupérer l’ID utilisateur depuis le token JWT.");
+                return Unauthorized("Utilisateur non authentifié ou token invalide.");
+            }
+
+            var isAdmin = User.IsInRole("Admin");
+
+            try
+            {
+                await _orderService.CancelOrderAsync(id, userId, isAdmin);
+                return Ok(new { message = "Commande annulée avec succès." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("Erreur lors de l'annulation de la commande {OrderId} : {Message}", id, ex.Message);
+                return BadRequest(new { error = ex.Message });
+            }
+        }
     }
 }

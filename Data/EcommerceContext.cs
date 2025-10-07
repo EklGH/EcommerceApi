@@ -19,7 +19,9 @@ namespace EcommerceApi.Data
 
             modelBuilder.Entity<Order>()            // Conversion enum->string pour Order.Status
                 .Property(o => o.Status)
-                .HasConversion<string>();
+                .HasConversion(
+                v => v.ToString(),
+                v => ConvertToOrderStatus(v));
 
             modelBuilder.Entity<Order>()            // Relation 1:1 entre Order et Payment
                 .HasOne(o => o.Payment)
@@ -40,6 +42,24 @@ namespace EcommerceApi.Data
                 .HasOne(oi => oi.Order)
                 .WithMany(o => o.OrderItems)
                 .HasForeignKey(oi => oi.OrderId);
+        }
+
+
+        // Méthode de conversion string->OrderStatus
+        private static OrderStatus ConvertToOrderStatus(string value)
+        {
+            return value switch
+            {
+                "En attente" => OrderStatus.Pending,
+                "Pending" => OrderStatus.Pending,
+                "Expédiée" => OrderStatus.Shipped,
+                "Shipped" => OrderStatus.Shipped,
+                "Livrée" => OrderStatus.Delivered,
+                "Delivered" => OrderStatus.Delivered,
+                "Annulée" => OrderStatus.Cancelled,
+                "Cancelled" => OrderStatus.Cancelled,
+                _ => throw new ArgumentOutOfRangeException($"Statut inconnu {value}")
+            };
         }
     }
 }
