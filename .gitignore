@@ -1,0 +1,30 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.vssscc
+*.sln.docstates
+
+# Build
+bin/
+obj/
+out/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Secrets / config locales
+appsettings.Development.json
+secrets.json
+
+# Rider / VS Code
+.idea/
+.vscode/
+
+# Entity Framework
+*.db
+*.sqlite
