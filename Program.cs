@@ -20,7 +20,7 @@ var conn = builder.Configuration.GetConnectionString("DefaultConnection");
 
 // ajoute DbContext (changer UseSqlite en UseSqlServer si on utilise SQL Server)
 builder.Services.AddDbContext<EcommerceContext>(options =>
-    options.UseSqlite(conn));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 
 
