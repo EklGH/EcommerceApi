@@ -5,6 +5,8 @@ VisualStudioVersion = 17.14.36414.22
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EcommerceApi", "EcommerceApi.csproj", "{5DC55AC5-3F42-9DBC-B445-8C52F2920A6D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EcommerceApi.Tests", "EcommerceApi.Tests\EcommerceApi.Tests.csproj", "{F76E78B3-717B-447C-9423-48534C6BFB8B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,18 @@ Global
 		{5DC55AC5-3F42-9DBC-B445-8C52F2920A6D}.Release|x64.Build.0 = Release|Any CPU
 		{5DC55AC5-3F42-9DBC-B445-8C52F2920A6D}.Release|x86.ActiveCfg = Release|Any CPU
 		{5DC55AC5-3F42-9DBC-B445-8C52F2920A6D}.Release|x86.Build.0 = Release|Any CPU
+		{F76E78B3-717B-447C-9423-48534C6BFB8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F76E78B3-717B-447C-9423-48534C6BFB8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F76E78B3-717B-447C-9423-48534C6BFB8B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F76E78B3-717B-447C-9423-48534C6BFB8B}.Debug|x64.Build.0 = Debug|Any CPU
+		{F76E78B3-717B-447C-9423-48534C6BFB8B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F76E78B3-717B-447C-9423-48534C6BFB8B}.Debug|x86.Build.0 = Debug|Any CPU
+		{F76E78B3-717B-447C-9423-48534C6BFB8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F76E78B3-717B-447C-9423-48534C6BFB8B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F76E78B3-717B-447C-9423-48534C6BFB8B}.Release|x64.ActiveCfg = Release|Any CPU
+		{F76E78B3-717B-447C-9423-48534C6BFB8B}.Release|x64.Build.0 = Release|Any CPU
+		{F76E78B3-717B-447C-9423-48534C6BFB8B}.Release|x86.ActiveCfg = Release|Any CPU
+		{F76E78B3-717B-447C-9423-48534C6BFB8B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -9,7 +9,7 @@ namespace EcommerceApi.Services
     public class PaymentProcessingBackgroundService : BackgroundService
     {
         private readonly IBackgroundTaskQueue _queue;
-        private readonly IServiceScopeFactory _scopeFactory;
+        protected readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<PaymentProcessingBackgroundService> _logger;
         private readonly Random _rng = new Random();
 
@@ -76,6 +76,19 @@ namespace EcommerceApi.Services
                     _logger.LogError(ex, "Erreur lors du traitement du paiement {PaymentId}", paymentId);
                 }
             }
+        }
+
+        // Extrait le traitement d’un paiement pour tests unitaires.
+        protected virtual async Task ProcessNextPaymentAsync(CancellationToken token)
+        {
+            int paymentId = await _queue.DequeueAsync(token);
+
+            using var scope = _scopeFactory.CreateScope();
+            var ctx = scope.ServiceProvider.GetRequiredService<EcommerceContext>();
+
+            var payment = await ctx.Payments.Include(p => p.Order)
+                                            .FirstOrDefaultAsync(p => p.Id == paymentId, token);
+            if (payment == null) return;
         }
     }
 }
