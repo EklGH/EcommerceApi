@@ -15,18 +15,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 // ======== DATABASE
 
-// Recupere la chaine de connexion vers SQLite depuis appsettings.json
-var conn = builder.Configuration.GetConnectionString("DefaultConnection");
+var conn = builder.Configuration.GetConnectionString("DefaultConnection");     // Récupère la chaîne de connexion depuis User Secrets
 
-// ajoute DbContext (changer UseSqlite en UseSqlServer si on utilise SQL Server)
 builder.Services.AddDbContext<EcommerceContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(conn));                                               // Ajoute DbContext (SQL Server)
 
 
 
 // ======== JWT / AUTHENTICATION
 
-var jwtSettings = builder.Configuration.GetSection("Jwt");      // Configuration JWT
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");      // Configuration JWT
 var keyString = jwtSettings["Key"];
 
 if (string.IsNullOrEmpty(keyString))
