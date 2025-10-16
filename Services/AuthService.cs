@@ -9,7 +9,7 @@ using System.Text;
 
 namespace EcommerceApi.Services
 {
-    public class AuthService
+    public class AuthService : IAuthService
     {
         private readonly IConfiguration _configuration;
         private readonly EcommerceContext _context;
@@ -107,11 +107,11 @@ namespace EcommerceApi.Services
         {
             var tokenHandler = new JwtSecurityTokenHandler();
 
-            var keyString = _configuration["Jwt:Key"]
-                ?? throw new ArgumentNullException("Jwt:Key", "La clé JWT est manquante dans la configuration.");
+            var keyString = _configuration["JwtSettings:Key"]
+                ?? throw new ArgumentNullException("JwtSettings:Key", "La clé JWT est manquante dans la configuration.");
 
-            var durationString = _configuration["Jwt:DurationInMinutes"]
-                ?? throw new ArgumentNullException("Jwt:DurationInMinutes", "La durée JWT est manquante dans la configuration.");
+            var durationString = _configuration["JwtSettings:DurationInMinutes"]
+                ?? throw new ArgumentNullException("JwtSettings:DurationInMinutes", "La durée JWT est manquante dans la configuration.");
 
             var key = Encoding.ASCII.GetBytes(keyString);
             var duration = int.Parse(durationString);
@@ -124,8 +124,8 @@ namespace EcommerceApi.Services
                     new Claim(ClaimTypes.Role, user.Role)
                 }),
                 Expires = DateTime.UtcNow.AddMinutes(duration),
-                Issuer = _configuration["Jwt:Issuer"],
-                Audience = _configuration["Jwt:Audience"],
+                Issuer = _configuration["JwtSettings:Issuer"],
+                Audience = _configuration["JwtSettings:Audience"],
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);

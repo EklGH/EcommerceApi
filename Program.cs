@@ -1,3 +1,4 @@
+// PROJET en FULL DOCKER (API+SQL Server)
 using EcommerceApi.Data;
 using EcommerceApi.Middleware;
 using EcommerceApi.Repositories;
@@ -17,8 +18,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 var conn = builder.Configuration.GetConnectionString("DefaultConnection");     // Récupère la chaîne de connexion depuis User Secrets
 
-builder.Services.AddDbContext<EcommerceContext>(options =>
-    options.UseSqlServer(conn));                                               // Ajoute DbContext (SQL Server)
+builder.Services.AddDbContext<EcommerceContext>(options =>                                               // Ajoute DbContext (SQL Server)
+    options.UseSqlServer(conn, sqlOptions =>
+        sqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null)
+    )
+);
 
 
 
@@ -59,6 +63,7 @@ builder.Services.AddAuthorization();
 
 // ======== SERVICES / CONTROLLERS
 
+// Controllers
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add<ValidationFilter>();        // Validation automatique des DTO
@@ -98,32 +103,46 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// SERVICES :
-builder.Services.AddScoped<AuthService>();
+// Repositories
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
-builder.Services.AddScoped<ProductService>();
-builder.Services.AddScoped<OrderService>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 
-// Payments/Background queue
-builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
-builder.Services.AddHostedService<PaymentProcessingBackgroundService>();
+// Services
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 
+// Background processing
+builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
+builder.Services.AddHostedService<PaymentProcessingBackgroundService>();
 
 
-// ======== HTTP PIPELINE
+
+// ======== DOCKER PORT
+
+builder.WebHost.UseUrls("http://+:8080");
+
+
+
+// ======== BUILD APPLICATION
 
 var app = builder.Build();
 
+
+
+// ======== MIDDLEWARE
+
 app.UseMiddleware<ExceptionMiddleware>();             // doit être en premier dans le pipeline
 
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Ecommerce API v1");
+});
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();   // (permet à swagger de fonctionner avec docker) A ACTIVER EN PROD
 
 app.UseAuthentication();     // tjrs avant Authorization
 app.UseAuthorization();
@@ -132,7 +151,7 @@ app.MapControllers();
 
 
 
-// ======== MIGRATIONS + SEED
+// ======== DATABASE MIGRATIONS + SEED
 
 using (var scope = app.Services.CreateScope())
 {

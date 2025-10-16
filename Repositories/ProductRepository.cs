@@ -86,7 +86,6 @@ namespace EcommerceApi.Repositories
         }
 
 
-
         // ======== Utilitaires
 
         // Compte les produits selon filtres (pagination)
@@ -107,6 +106,11 @@ namespace EcommerceApi.Repositories
                 query = query.Where(p => p.Price <= maxPrice.Value);
 
             return await query.CountAsync();
+        }
+
+        public Task SaveChangesAsync()
+        {
+            return _context.SaveChangesAsync();
         }
     }
 }

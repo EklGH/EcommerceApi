@@ -1,19 +1,22 @@
 ﻿using EcommerceApi.Data;
 using EcommerceApi.DTOs;
 using EcommerceApi.Models;
+using EcommerceApi.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace EcommerceApi.Services
 {
-    public class OrderService
+    public class OrderService : IOrderService
     {
-        private readonly EcommerceContext _context;
+        private readonly IOrderRepository _orderRepo;
+        private readonly IProductRepository _productRepo;
         private readonly ILogger<OrderService> _logger;
 
-        public OrderService(EcommerceContext context, ILogger<OrderService> logger)
+        public OrderService(IOrderRepository orderRepo, IProductRepository productRepo, ILogger<OrderService> logger)
         {
-            _context = context;
+            _orderRepo = orderRepo;
+            _productRepo = productRepo;
             _logger = logger;
         }
 
@@ -29,7 +32,7 @@ namespace EcommerceApi.Services
 
             foreach (var item in dto.Items)
             {
-                var product = await _context.Products.FindAsync(item.ProductId);
+                var product = await _productRepo.GetByIdAsync(item.ProductId);
                 if (product == null)                           // existence du produit
                 {
                     _logger.LogWarning("Produit {ProductId} introuvable pour l'utilisateur {UserId}", item.ProductId, userId);
@@ -61,8 +64,7 @@ namespace EcommerceApi.Services
                 OrderItems = orderItems
             };
 
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
+            await _orderRepo.AddAsync(order);
 
             _logger.LogInformation("Commande {OrderId} créée avec succès pour l'utilisateur {UserId}", order.Id, userId);
 
@@ -74,11 +76,7 @@ namespace EcommerceApi.Services
         {
             _logger.LogInformation("Récupération des commandes pour l'utilisateur {UserId}", userId);
 
-            return await _context.Orders
-                .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Product)
-                .Where(o => o.UserId == userId)
-                .ToListAsync();
+            return await _orderRepo.GetByUserIdAsync(userId);
         }
 
         // Recherche ...les détails d'une commande par ID
@@ -86,10 +84,7 @@ namespace EcommerceApi.Services
         {
             _logger.LogInformation("Récupération de la commande {OrderId} pour l'utilisateur {UserId}", orderId, userId);
 
-            var order = await _context.Orders
-                .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Product)
-                .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId);
+            var order = await _orderRepo.GetByIdAsync(orderId);
 
             if (order == null)
             {
@@ -99,13 +94,13 @@ namespace EcommerceApi.Services
 
             return order;
         }
-
+        
         // Modifie ...le statut d'une commande (Admin)
         public async Task UpdateOrderStatusAsync(int orderId, OrderStatus status)
         {
             _logger.LogInformation("Mise à jour du statut de la commande {OrderId} vers {Status}", orderId, status);
 
-            var order = await _context.Orders.FindAsync(orderId);
+            var order = await _orderRepo.GetByIdAsync(orderId); ;
             if (order == null)
             {
                 _logger.LogWarning("Commande {OrderId} introuvable pour mise à jour du statut", orderId);
@@ -113,7 +108,7 @@ namespace EcommerceApi.Services
             }
 
             order.Status = status;
-            await _context.SaveChangesAsync();
+            await _orderRepo.UpdateAsync(order);
 
             _logger.LogInformation("Statut de la commande {OrderId} mis à jour avec succès vers {Status}", orderId, status);
         }
@@ -124,10 +119,7 @@ namespace EcommerceApi.Services
         {
             _logger.LogInformation("Tentative d'annulation de la commande {OrderId} par l'utilisateur {UserId}", orderId, userId);
 
-            var order = await _context.Orders
-                .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Product)
-                .FirstOrDefaultAsync(o => o.Id == orderId);
+            var order = await _orderRepo.GetByIdAsync(orderId);
 
             if (order == null)
             {
@@ -162,7 +154,7 @@ namespace EcommerceApi.Services
                 }
             }
 
-            await _context.SaveChangesAsync();
+            await _orderRepo.UpdateAsync(order);
 
             _logger.LogInformation("Commande {OrderId} annulée avec succès", orderId);
         }

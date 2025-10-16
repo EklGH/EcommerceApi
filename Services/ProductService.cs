@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace EcommerceApi.Services
 {
-    public class ProductService
+    public class ProductService : IProductService
     {
         private readonly IProductRepository _repo;
         private readonly ILogger<ProductService> _logger;

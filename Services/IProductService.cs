@@ -1,8 +1,8 @@
 ﻿using EcommerceApi.Models;
 
-namespace EcommerceApi.Repositories
+namespace EcommerceApi.Services
 {
-    public interface IProductRepository           // le contrat pour ProductRepository
+    public interface IProductService
     {
         Task<List<Product>> GetAllAsync(int pageNumber, int pageSize, string? search, string? category, decimal? minPrice, decimal? maxPrice, string? sort);
         Task<Product?> GetByIdAsync(int id);
@@ -10,6 +10,5 @@ namespace EcommerceApi.Repositories
         Task<Product?> UpdateAsync(Product product);
         Task<bool> DeleteAsync(int id);
         Task<int> CountAsync(string? search, string? category, decimal? minPrice, decimal? maxPrice);
-        Task SaveChangesAsync();
     }
 }

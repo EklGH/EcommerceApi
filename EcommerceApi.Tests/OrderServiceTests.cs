@@ -1,14 +1,15 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using EcommerceApi.Data;
+using EcommerceApi.DTOs;
+using EcommerceApi.Models;
+using EcommerceApi.Repositories;
+using EcommerceApi.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using EcommerceApi.Data;
-using EcommerceApi.Models;
-using EcommerceApi.Services;
-using EcommerceApi.DTOs;
-using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace EcommerceApi.Tests
 {
@@ -36,7 +37,12 @@ namespace EcommerceApi.Tests
             _context.Database.EnsureCreated();
 
             _logger = new Mock<ILogger<OrderService>>();
-            _service = new OrderService(_context, _logger.Object);
+
+            var orderRepo = new OrderRepository(_context);
+            var productRepo = new ProductRepository(_context);
+
+            // Service à tester
+            _service = new OrderService(orderRepo, productRepo, _logger.Object);
         }
 
 

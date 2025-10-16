@@ -12,10 +12,10 @@ namespace EcommerceApi.Controllers
     [Route("api/[controller]")]
     public class OrdersController : ControllerBase
     {
-        private readonly OrderService _orderService;
+        private readonly IOrderService _orderService;
         private readonly ILogger<OrdersController> _logger;
 
-        public OrdersController(OrderService orderService, ILogger<OrdersController> logger)
+        public OrdersController(IOrderService orderService, ILogger<OrdersController> logger)
         {
             _orderService = orderService;
             _logger = logger;

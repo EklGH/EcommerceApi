@@ -1,19 +1,22 @@
 ﻿using EcommerceApi.Data;
 using EcommerceApi.DTOs;
 using EcommerceApi.Models;
+using EcommerceApi.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace EcommerceApi.Services
 {
     public class PaymentService : IPaymentService
     {
-        private readonly EcommerceContext _context;
+        private readonly IPaymentRepository _paymentRepo;
+        private readonly IOrderRepository _orderRepo;
         private readonly IBackgroundTaskQueue _taskQueue;
         private readonly ILogger<PaymentService> _logger;
 
-        public PaymentService(EcommerceContext context, IBackgroundTaskQueue taskQueue, ILogger<PaymentService> logger)
+        public PaymentService(IPaymentRepository paymentRepo, IOrderRepository orderRepo, IBackgroundTaskQueue taskQueue, ILogger<PaymentService> logger)
         {
-            _context = context;
+            _paymentRepo = paymentRepo;
+            _orderRepo = orderRepo;
             _taskQueue = taskQueue;
             _logger = logger;
         }
@@ -24,9 +27,7 @@ namespace EcommerceApi.Services
         // Crée ...un paiement
         public async Task<Payment> CreatePaymentAsync(int userId, CreatePaymentDto dto)
         {
-            var order = await _context.Orders                                          // Récupère la commande avec ses items
-                .Include(o => o.OrderItems)
-                .FirstOrDefaultAsync(o => o.Id == dto.OrderId);
+            var order = await _orderRepo.GetByIdWithItemsAsync(dto.OrderId);          // Récupère la commande avec ses items
 
             if (order == null)
             {
@@ -53,8 +54,7 @@ namespace EcommerceApi.Services
 
             if (!string.IsNullOrEmpty(dto.IdempotencyKey))                             // Gestion de l'idempotence
             {
-                var existing = await _context.Payments
-                    .FirstOrDefaultAsync(p => p.IdempotencyKey == dto.IdempotencyKey);
+                var existing = await _paymentRepo.GetByIdempotencyKeyAsync(dto.IdempotencyKey);
                 if (existing != null)
                 {
                     _logger.LogInformation("Paiement existant réutilisé (PaymentId {PaymentId}, IdempotencyKey {Key})", existing.Id, dto.IdempotencyKey);
@@ -70,8 +70,8 @@ namespace EcommerceApi.Services
                 IdempotencyKey = dto.IdempotencyKey
             };
 
-            _context.Payments.Add(payment);
-            await _context.SaveChangesAsync();
+            await _paymentRepo.AddAsync(payment);
+            await _paymentRepo.SaveChangesAsync();
 
             _taskQueue.QueueBackgroundWorkItem(payment.Id);                             // Mettre en queue pour traitement asynchrone
 
@@ -81,6 +81,6 @@ namespace EcommerceApi.Services
 
         // Recherche ...un paiement par ID
         public Task<Payment?> GetPaymentAsync(int paymentId)
-            => _context.Payments.FirstOrDefaultAsync(p => p.Id == paymentId);
+            => _paymentRepo.GetByIdAsync(paymentId);
     }
 }

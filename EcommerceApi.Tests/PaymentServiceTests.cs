@@ -1,14 +1,15 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Moq;
-using EcommerceApi.Data;
+﻿using EcommerceApi.Data;
 using EcommerceApi.DTOs;
 using EcommerceApi.Models;
+using EcommerceApi.Repositories;
 using EcommerceApi.Services;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace EcommerceApi.Tests
 {
@@ -29,10 +30,21 @@ namespace EcommerceApi.Tests
 
             _context = new EcommerceContext(options);
 
-            var logger = new Mock<ILogger<PaymentService>>();                // Mock Logger
+            // Mocks
+            var loggerMock = new Mock<ILogger<PaymentService>>();
             _taskQueueMock = new Mock<IBackgroundTaskQueue>();
 
-            _service = new PaymentService(_context!, _taskQueueMock.Object, logger.Object);
+            // Repositories
+            var paymentRepo = new PaymentRepository(_context);
+            var orderRepo = new OrderRepository(_context);
+
+            // Service à tester
+            _service = new PaymentService(
+                paymentRepo,
+                orderRepo,
+                _taskQueueMock.Object,
+                loggerMock.Object
+                );
         }
 
 

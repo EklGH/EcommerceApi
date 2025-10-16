@@ -11,10 +11,10 @@ namespace EcommerceApi.Controllers
     [Route("api/[controller]")]
     public class ProductsController : ControllerBase
     {
-        private readonly ProductService _service;
+        private readonly IProductService _service;
         private readonly ILogger<ProductsController> _logger;
 
-        public ProductsController(ProductService service, ILogger<ProductsController> logger)
+        public ProductsController(IProductService service, ILogger<ProductsController> logger)
         {
             _service = service;
             _logger = logger;
@@ -50,7 +50,7 @@ namespace EcommerceApi.Controllers
                 TotalCount = total
             };
 
-            return Ok();
+            return Ok(response);
 
         }
 

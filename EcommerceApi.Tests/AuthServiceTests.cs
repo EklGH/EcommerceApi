@@ -30,10 +30,10 @@ namespace EcommerceApi.Tests
 
             var inMemorySettings = new Dictionary<string, string?>           // Mock de IConfiguration (JWT)
             {
-                {"Jwt:Key", "supersecretkeyfortest123456789ABCDEF"},
-                {"Jwt:Issuer", "testIssuer"},
-                {"Jwt:Audience", "testAudience"},
-                {"Jwt:DurationInMinutes", "60"}
+                {"JwtSettings:Key", "supersecretkeyfortest123456789ABCDEF"},
+                {"JwtSettings:Issuer", "testIssuer"},
+                {"JwtSettings:Audience", "testAudience"},
+                {"JwtSettings:DurationInMinutes", "60"}
             };
 
             IConfiguration configuration = new ConfigurationBuilder()
