@@ -61,6 +61,12 @@ builder.Services.AddAuthorization();
 
 
 
+// ======== CACHING
+
+builder.Services.AddMemoryCache();
+
+
+
 // ======== SERVICES / CONTROLLERS
 
 // Controllers

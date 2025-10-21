@@ -1,6 +1,8 @@
 ﻿using EcommerceApi.Data;
+using EcommerceApi.DTOs;
 using EcommerceApi.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Runtime.Intrinsics.X86;
 
 namespace EcommerceApi.Repositories
 {
@@ -16,34 +18,53 @@ namespace EcommerceApi.Repositories
 
         // ======== CRUD
 
-        // Recherche ...tous les produits avec pagination + filtres
-        public async Task<List<Product>> GetAllAsync(int pageNumber, int pageSize, string? search, string? category, decimal? minPrice, decimal? maxPrice, string? sort)
+        // Recherche ...tous les produits avec pagination + filtres + tri
+        public async Task<List<Product>> GetAllAsync(ProductQueryParams query)
         {
-            var query = _context.Products.AsQueryable();
+            var q = _context.Products.AsQueryable();
+
+            // Recherche insensible à la casse
+            string? search = query.Search?.ToLower();
+            string? category = query.Category?.ToLower();
 
             if (!string.IsNullOrEmpty(search))
-                query = query.Where(p => p.Name.Contains(search));
+                q = q.Where(p => p.Name.ToLower().Contains(search));
 
             if (!string.IsNullOrEmpty(category))
-                query = query.Where(p => p.Category == category);
+                q = q.Where(p => p.Category.ToLower() == category);
 
-            if (minPrice.HasValue)
-                query = query.Where(p => p.Price >= minPrice.Value);
+            if (query.MinPrice.HasValue)
+                q = q.Where(p => p.Price >= query.MinPrice.Value);
 
-            if (maxPrice.HasValue)
-                query = query.Where(p => p.Price <= maxPrice.Value);
-            
-            query = sort switch
+            if (query.MaxPrice.HasValue)
+                q = q.Where(p => p.Price <= query.MaxPrice.Value);
+
+            if (query.InStock.HasValue && query.InStock.Value)
+                q = q.Where(p => p.Stock > 0);
+
+            // Tri dynamique
+            if (!string.IsNullOrEmpty(query.SortBy))
             {
-                "nameDesc" => query.OrderByDescending(p => p.Name),
-                "priceAsc" => query.OrderBy(p => p.Price),
-                "priceDesc" => query.OrderByDescending(p => p.Price),
-                _ => query.OrderBy(p => p.Name)
-            };
+                q = (query.SortBy.ToLower(), query.Descending) switch
+                {
+                    ("name", true) => q.OrderByDescending(p => p.Name),
+                    ("name", false) => q.OrderBy(p => p.Name),
+                    ("price", true) => q.OrderByDescending(p => p.Price),
+                    ("price", false) => q.OrderBy(p => p.Price),
+                    ("stock", true) => q.OrderByDescending(p => p.Stock),
+                    ("stock", false) => q.OrderBy(p => p.Stock),
+                    _ => q.OrderBy(p => p.Name)
+                };
+            }
+            else
+            {
+                q = q.OrderBy(p => p.Name);
+            }
 
-            return await query                            // pagination
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
+            // Pagination
+            return await q
+                .Skip((query.PageNumber - 1) * query.PageSize)
+                .Take(query.PageSize)
                 .ToListAsync();
         }
 
@@ -89,23 +110,30 @@ namespace EcommerceApi.Repositories
         // ======== Utilitaires
 
         // Compte les produits selon filtres (pagination)
-        public async Task<int> CountAsync(string? search, string? category, decimal? minPrice, decimal? maxPrice)
+        public async Task<int> CountAsync(ProductQueryParams query)
         {
-            var query = _context.Products.AsQueryable();
+            var q = _context.Products.AsQueryable();
+
+            // Recherche insensible à la casse
+            string? search = query.Search?.ToLower();
+            string? category = query.Category?.ToLower();
 
             if (!string.IsNullOrEmpty(search))
-                query = query.Where(p => p.Name.Contains(search));
+                q = q.Where(p => p.Name.ToLower().Contains(search));
 
             if (!string.IsNullOrEmpty(category))
-                query = query.Where(p => p.Category == category);
+                q = q.Where(p => p.Category.ToLower() == category);
 
-            if (minPrice.HasValue)
-                query = query.Where(p => p.Price >= minPrice.Value);
+            if (query.MinPrice.HasValue)
+                q = q.Where(p => p.Price >= query.MinPrice.Value);
 
-            if (maxPrice.HasValue)
-                query = query.Where(p => p.Price <= maxPrice.Value);
+            if (query.MaxPrice.HasValue)
+                q = q.Where(p => p.Price <= query.MaxPrice.Value);
 
-            return await query.CountAsync();
+            if (query.InStock.HasValue && query.InStock.Value)
+                q = q.Where(p => p.Stock > 0);
+
+            return await q.CountAsync();
         }
 
         public Task SaveChangesAsync()

@@ -3,6 +3,7 @@ using EcommerceApi.Models;
 using EcommerceApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 
 namespace EcommerceApi.Controllers
@@ -33,21 +34,33 @@ namespace EcommerceApi.Controllers
             [FromQuery] string? category = null,
             [FromQuery] decimal? minPrice = null,
             [FromQuery] decimal? maxPrice = null,
+            [FromQuery] bool? inStock = null,
             [FromQuery] string? sort = "nameAsc")         // tri croissant/décroissant
         {
-            int currentPage = pageNumber ?? 1;
-            int currentSize = pageSize ?? 10;
+            var query = new ProductQueryParams
+            {
+                PageNumber = pageNumber ?? 1,
+                PageSize = pageSize ?? 10,
+                Search = search,
+                Category = category,
+                MinPrice = minPrice,
+                MaxPrice = maxPrice,
+                InStock = inStock,
+                SortBy = !string.IsNullOrEmpty(sort) && sort.EndsWith("Desc", StringComparison.OrdinalIgnoreCase)
+                    ? sort[..^4]
+                    : sort ?? "name",
+                Descending = !string.IsNullOrEmpty(sort) && sort.EndsWith("Desc", StringComparison.OrdinalIgnoreCase)
+            };
 
-            var products = await _service.GetAllAsync(currentPage, currentSize, search, category, minPrice, maxPrice, sort);
-            var total = await _service.CountAsync(search, category, minPrice, maxPrice);
+            var pagedResult = await _service.GetAllAsync(query);
 
-            _logger.LogInformation("Liste des produits récupérée : {Count} produits trouvés (page {Page}, taille {Size})",
-                products.Count, currentPage, currentSize);
+            _logger.LogInformation("Liste des produits récupérée : {Count} produits trouvés (page {Page}, taille {Size}, inStock={InStock})",
+                pagedResult.Items.Count, query.PageNumber, query.PageSize, query.InStock);
 
             var response = new ServiceResponse<List<Product>>
             {
-                Data = products,
-                TotalCount = total
+                Data = pagedResult.Items,
+                TotalCount = pagedResult.TotalCount
             };
 
             return Ok(response);
