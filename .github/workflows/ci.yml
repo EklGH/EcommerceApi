@@ -1,0 +1,58 @@
+name: CI/CD - Ecommerce API
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        ports:
+          - 1433:1433
+        env:
+          SA_PASSWORD: ${{ secrets.DB_PASSWORD }}       # mdp de docker-compose
+          ACCEPT_EULA: "Y"
+        options: >-
+          --health-cmd "exit 0"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+
+    steps:
+        # Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+        # Setup .NET
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'                        # version .net du projet
+
+        # Restore packages
+      - name: Restore NuGet packages
+        run: dotnet restore EcommerceApi/EcommerceApi.csproj
+        
+        # Build API
+      - name: Build API
+        run: dotnet build EcommerceApi/EcommerceApi.csproj --configuration Release
+
+        # Run EF Core migrations
+      - name: Run EF Core migrations
+        run: |
+          dotnet tool install --global dotnet-ef
+          export PATH="$PATH:/home/runner/.dotnet/tools"
+          dotnet ef database update --project EcommerceApi/EcommerceApi.csproj --context EcommerceContext
+        
+        # Run unit tests
+      - name: Run unit tests
+        run: dotnet test EcommerceApi.Tests/EcommerceApi.Tests.csproj --logger "trx;LogFileName=test_results.trx"
+
+        # Build Docker image
+      - name: Build Docker image
+        run: docker build -t ecommerceapi:latest .

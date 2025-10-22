@@ -6,7 +6,7 @@ services:
       - "1433:1433"
     environment:
       ACCEPT_EULA: "Y"
-      SA_PASSWORD: "EcommerceApi!01"
+      SA_PASSWORD: "${DB_PASSWORD}"
     volumes:
       - sqlserver_data:/var/opt/mssql
     
@@ -19,9 +19,9 @@ services:
       - "5000:8080"                         # port host:port container
     environment:                            # variables d'enviro
       ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=EcommerceDb;User Id=sa;Password=EcommerceApi!01;TrustServerCertificate=True;"
-      JwtSettings__Key: "MaCleSecreteUltraSecure1234567890!"
-      JwtSettings__Issuer: "EcommerceApi"
-      JwtSettings__Audience: "EcommerceApiClients"
+      JwtSettings__Key: "${JWT_SECRET_KEY}"
+      JwtSettings__Issuer: "${JWT_ISSUER:-EcommerceApi}"
+      JwtSettings__Audience: "${JWT_AUDIENCE:-EcommerceApiClients}"
       JwtSettings__DurationInMinutes: "60"
     depends_on:
       - sqlserver
