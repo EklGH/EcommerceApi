@@ -9,6 +9,13 @@ on:
 jobs:
   build-test:
     runs-on: ubuntu-latest
+      # Variables d'environnement
+    env:
+      ConnectionStrings__DefaultConnection: "Server=localhost,1433;Database=EcommerceDb;User Id=sa;Password=${{ secrets.DB_PASSWORD }};TrustServerCertificate=True;"
+      JwtSettings__Key: ${{ secrets.JWT_SECRET_KEY }}
+      JwtSettings__Issuer: "EcommerceApi"
+      JwtSettings__Audience: "EcommerceApiClients"
+      JwtSettings__DurationInMinutes: "60"
     services:
       sqlserver:
         image: mcr.microsoft.com/mssql/server:2022-latest
