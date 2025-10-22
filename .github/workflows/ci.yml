@@ -36,18 +36,18 @@ jobs:
 
         # Restore packages
       - name: Restore NuGet packages
-        run: dotnet restore ./EcommerceApi/EcommerceApi.csproj
+        run: dotnet restore ./EcommerceApi.csproj
         
         # Build API
       - name: Build API
-        run: dotnet build ./EcommerceApi/EcommerceApi.csproj --configuration Release
+        run: dotnet build ./EcommerceApi.csproj --configuration Release
 
         # Run EF Core migrations
       - name: Run EF Core migrations
         run: |
           dotnet tool install --global dotnet-ef
           export PATH="$PATH:/home/runner/.dotnet/tools"
-          dotnet ef database update --project ./EcommerceApi/EcommerceApi.csproj --context EcommerceContext
+          dotnet ef database update --project ./EcommerceApi.csproj --context EcommerceContext
         
         # Run unit tests
       - name: Run unit tests
