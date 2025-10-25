@@ -159,23 +159,26 @@ app.MapControllers();
 
 // ======== DATABASE MIGRATIONS + SEED
 
-using (var scope = app.Services.CreateScope())
+if (app.Environment.IsDevelopment())
 {
-    var ctx = scope.ServiceProvider.GetRequiredService<EcommerceContext>();
-    ctx.Database.Migrate();             // applique les migrations
-    DbInitializer.Initialize(ctx);      // ajoute les données de test si besoin
-
-    // Espace ci-dessous pour Tests rapides
-    Console.WriteLine("=== USERS ===");
-    foreach (var u in ctx.Users.ToList())
+    using (var scope = app.Services.CreateScope())
     {
-        Console.WriteLine($"{u.Id} - {u.Username} - {u.Role}");
-    }
+        var ctx = scope.ServiceProvider.GetRequiredService<EcommerceContext>();
+        ctx.Database.Migrate();             // applique les migrations
+        DbInitializer.Initialize(ctx);      // ajoute les données de test si besoin
 
-    Console.WriteLine("=== PRODUCTS ===");
-    foreach (var p in ctx.Products.ToList())
-    {
-        Console.WriteLine($"{p.Id} - {p.Name} - {p.Price}€ - Stock: {p.Stock}");
+        // Espace ci-dessous pour Tests rapides
+        Console.WriteLine("=== USERS ===");
+        foreach (var u in ctx.Users.ToList())
+        {
+            Console.WriteLine($"{u.Id} - {u.Username} - {u.Role}");
+        }
+
+        Console.WriteLine("=== PRODUCTS ===");
+        foreach (var p in ctx.Products.ToList())
+        {
+            Console.WriteLine($"{p.Id} - {p.Name} - {p.Price}€ - Stock: {p.Stock}");
+        }
     }
 }
 

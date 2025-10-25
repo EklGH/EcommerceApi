@@ -1,0 +1,42 @@
+name: CD - Ecommerce API
+
+on:
+  workflow_run:
+    workflows: ["CI - Ecommerce API"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 1 (pour CD)
+      #- name: Copy docker-compose to server
+        #uses: appleboy/scp-action@v0.1.4
+        #with:
+          #host: ${{ secrets.SERVER_HOST }}
+          #username: ${{ secrets.SERVER_USER }}
+          #key: ${{ secrets.SERVER_SSH_KEY }}
+          #source: "docker-compose.yml"
+          #target: "/home/${{ secrets.SERVER_USER }}/EcommerceApi"
+
+      # 2 (pour CD)
+      #- name: Deploy on Ubuntu via SSH
+        #uses: appleboy/ssh-action@v0.1.7
+        #with:
+          #host: ${{ secrets.SERVER_HOST }}
+          #username: ${{ secrets.SERVER_USER }}
+          #key: ${{ secrets.SERVER_SSH_KEY }}
+          #script: |
+            #cd ~/EcommerceApi
+            #export DB_CONNECTION="${{ secrets.DB_CONNECTION }}"
+            #export JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}"
+            #export JWT_ISSUER="${{ secrets.JWT_ISSUER }}"
+            #export JWT_AUDIENCE="${{ secrets.JWT_AUDIENCE }}"
+            #docker compose pull
+            #docker compose up -d
+            #docker system prune -f

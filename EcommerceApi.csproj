@@ -31,6 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include=".github\workflows\cd.yml" />
     <None Include=".github\workflows\ci.yml" />
   </ItemGroup>
 
