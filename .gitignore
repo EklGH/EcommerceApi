@@ -18,7 +18,6 @@ Thumbs.db
 *.log
 
 # Secrets / config locales
-appsettings.json
 appsettings.Development.json
 secrets.json
 
