@@ -18,7 +18,7 @@ services:
     ports:
       - "5000:8080"                         # port host:port container
     environment:                            # variables d'enviro
-      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=EcommerceDb;User Id=sa;Password=EcommerceApi!01;TrustServerCertificate=True;"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=EcommerceDb;User Id=sa;Password=${DB_PASSWORD};TrustServerCertificate=True;"
       JwtSettings__Key: "${JWT_SECRET_KEY}"
       JwtSettings__Issuer: "${JWT_ISSUER:-EcommerceApi}"
       JwtSettings__Audience: "${JWT_AUDIENCE:-EcommerceApiClients}"

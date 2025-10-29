@@ -20,6 +20,7 @@ Thumbs.db
 # Secrets / config locales
 appsettings.Development.json
 secrets.json
+.env
 
 # Rider / VS Code
 .idea/
